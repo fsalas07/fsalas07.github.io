@@ -1,0 +1,25 @@
+---
+import { SITE } from '../lib/site';
+import { getBuildInfo, PAGE_WEIGHT_TOKEN } from '../lib/build-info';
+
+const build = getBuildInfo();
+const commit = build.sha ? `${SITE.github}/${SITE.repo}/commit/${build.sha}` : undefined;
+// The page-weight integration swaps the token for a measured number after the
+// build; in `astro dev` there is nothing to measure.
+const weight = import.meta.env.DEV ? '—' : PAGE_WEIGHT_TOKEN;
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© {build.date.slice(0, 4)} {SITE.name}</p>
+    <ul>
+      <li><a href={SITE.rss}>RSS</a></li>
+      <li><a href={SITE.github} rel="me">GitHub</a></li>
+    </ul>
+    <p class="colophon">
+      <span>built {commit ? <a href={commit}>{build.short}</a> : build.short}</span>
+      <span><time datetime={build.date}>{build.date}</time></span>
+      <span title="Page weight: transfer, gzipped, excl. fonts">{weight}</span>
+      <button type="button" class="shortcuts-help" data-shortcuts-help title="keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
+    </p>
+  </div>
+</footer>

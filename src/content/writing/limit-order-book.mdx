@@ -1,0 +1,92 @@
+---
+title: 'How a limit order book works'
+description: 'The data structure behind most electronic markets, explained with a working matching engine you can trade against.'
+date: 2026-11-14
+tags: ['markets', 'microstructure', 'interactive']
+math: false
+toc: true
+---
+import OrderBook from '../../components/demos/OrderBook.tsx';
+import DepthChart from '../../components/demos/DepthChart.tsx';
+
+When you click "buy" on a stock, your order does not go to a price. It goes to a *book*, a list of everyone else's standing offers, and the exchange's matching engine tries to pair you with one of them. Almost every electronic market, from equities to futures to crypto, is built around this one data structure. It is small enough to understand completely, which makes it a good first thing to understand about markets.
+
+## Two sorted lists
+
+For each instrument the exchange keeps two lists. The **bids** are orders to buy, sorted from the highest price down. The **asks** (or offers) are orders to sell, sorted from the lowest price up. Each order says a side, a price and a quantity. The top of each list is what you see quoted on a screen: the **best bid** is the most anyone will currently pay, and the **best ask** is the least anyone will currently accept.
+
+Two numbers summarize the state of the book. The **spread** is the best ask minus the best bid, the gap between what buyers and sellers want. The **mid price** is halfway between them, which is the number people usually mean when they say "the price", even though no one can necessarily trade at it. Prices come in whole multiples of a **tick**; in US equities the minimum increment for most stocks above a dollar is one cent.<Sidenote>The demo stores prices as integer ticks, not floating-point dollars, as is standard in matching engines. Comparing prices for equality is the central operation here, and in floating point 0.1 + 0.2 is not equal to 0.3. Integers have no such surprises.</Sidenote>
+
+The book below is pre-seeded and, unless your system asks for reduced motion, starts out playing a stream of random order flow. Pause it whenever you want to think. Click a price to copy it into the order form, submit something, and watch where it lands.
+
+<Figure wide caption="A live limit order book. Green is the bid side and red is the ask side; bar length is the size resting at that price, and a ◆ marks size that is yours. The random flow is a toy generator, not a model of real traders. Keyboard shortcuts (b, s, l, m, n, p) work while focus is inside the figure.">
+  <OrderBook client:visible />
+</Figure>
+
+## Limit and market orders
+
+A **limit order** says "buy up to this quantity, at this price or better". If nothing is on offer at that price or lower, the order simply waits in the book at its price, where it adds to the **liquidity** that other people can trade against. A **market order** says "buy this quantity now, at whatever it costs". It never rests; it walks up the ask side, taking the best-priced orders first, until it is filled or the book runs dry.
+
+Try both. In the figure, a market buy for more shares than sit at the best ask will sweep into the next price level and the next, and the status line reports the average price you got. That difference between the best ask and your average fill is the cost of **walking the book**, and it grows with the size you try to trade.
+
+The two types blur at the edges. A limit buy priced at or above the best ask is *marketable*: it trades immediately, then rests whatever is left over. Notice too that trades happen at the price of the order that was *already waiting*, not at the price the incoming order asked for. Put in a limit buy at 100.10 against an ask at 100.02 and you pay 100.02. This is price improvement, and it is a feature of the mechanism, not a favor.
+
+## Price-time priority
+
+Suppose several orders are waiting at the same price. Which one trades first? Under **price-time priority**, the most common rule, better prices go first, and among equal prices the order that arrived earliest goes first. Each price level is therefore a first-in, first-out queue.<MarginNote>Not every venue is strictly FIFO. Some derivatives markets allocate part of each trade pro rata by resting size, which changes how much a trader should care about arriving first.</MarginNote>
+
+Your place in that queue is your **queue position**, and it has real value. Orders ahead of you must trade, or cancel, before yours gets a turn. Under FIFO, joining a level that already holds 300 shares puts you behind 300 shares of other people's patience. The "Your resting orders" panel shows exactly this: how many shares are ahead of each of your orders. Post a bid at the best bid and watch the number fall as sellers hit that level, or jump the queue by bidding one tick higher and becoming the new best bid, with nobody ahead of you at all.
+
+## Reading depth
+
+The ladder shows individual levels. A **depth chart** shows the same book cumulatively: at each price, how many shares are on offer at that price or better. Moving outward from the mid price, the bid curve climbs to the left and the ask curve climbs to the right, since each step further out adds the size resting at that price.
+
+<Figure caption="Cumulative depth, driven by the same book as the figure above (they share one engine, so orders you submit there appear here, marked ▲). A steep side is deep: a lot of size within a few ticks. A shallow side moves easily.">
+  <DepthChart client:visible />
+</Figure>
+
+The height of a step is the size at that level, and the width of the plateau between steps is the gap to the next occupied price. A market order of a given size is a horizontal line across the chart: it will eat its way along the staircase until the line hits the cumulative total. Thin books have low, wide staircases; deep ones are tall and tight.
+
+## Why there is a spread at all
+
+If the best bid were equal to the best ask, the orders would simply match. So the spread exists whenever both sides are waiting, and the more interesting question is why people are willing to wait on both sides at different prices.
+
+The usual answer comes in two parts. First, immediacy is worth paying for: someone who wants to trade right now pays the spread to the person willing to wait, as Harold Demsetz argued in 1968. Second, the person who waits takes on a risk, and the risk is not just that the price drifts. A standing order is a free option to the rest of the market, and the traders most eager to use it are the ones who know something the quote does not yet reflect. In the model of Glosten and Milgrom (1985), a market maker who cannot tell informed traders from uninformed ones must quote a spread wide enough that the money earned from the uninformed covers the losses to the informed. Add the cost of inventory, fees, and the floor that the tick size puts on how narrow the spread can be, and you have a spread.
+
+I should be honest about the demo here. Its random flow does not contain informed traders, so the spread you see is a property of how I generate orders, not an emergent consequence of adverse selection. What the demo *can* show you is the mechanical side: how a spread is crossed, how it re-forms, and what a trade does to the queues on either side of it.
+
+## The engine, in thirty lines
+
+The matching core of the demo is short. This is a condensed version of it; each side of the book is a map from price to a queue of orders.
+
+```ts
+function submit(side, type, price, qty) {
+  let left = qty;
+  while (left > 0) {
+    const best = side === 'buy' ? bestAsk() : bestBid();
+    if (best === undefined) break;                        // nothing to trade against
+    if (type === 'limit' && (side === 'buy' ? best > price : best < price))
+      break;                                              // not marketable: stop
+    const queue = opposite.get(best);
+    while (left > 0 && queue.length > 0) {
+      const maker = queue[0];                             // oldest order at this price
+      const take = Math.min(left, maker.qty);
+      maker.qty -= take;
+      left -= take;
+      fills.push({ price: best, qty: take, taker: side }); // trades at the maker's price
+      if (maker.qty === 0) queue.shift();
+    }
+    if (queue.length === 0) opposite.delete(best);
+  }
+  if (left > 0 && type === 'limit') rest(side, price, left); // back of the queue
+  // a market order's unfilled remainder is cancelled
+}
+```
+
+Price priority comes from always looking at the best opposite price first; time priority comes from taking `queue[0]`. Everything else is bookkeeping. A production engine keeps the same logic but pays far more attention to cost: price levels in a structure indexed by price rather than a map scanned for its best key, each level a linked list so that cancelling an order by its id is constant time, and no allocation on the hot path. My version finds the best price by scanning, which is perfectly fine for a few dozen levels and would not be fine at an exchange.
+
+## What the toy leaves out
+
+This is one instrument, one venue, and two order types. Real markets have order types I have not implemented (immediate-or-cancel, fill-or-kill, stop orders, hidden and iceberg orders), plus self-trade prevention (in the demo you can trade against your own resting order), cancel-and-replace, opening and closing auctions, circuit breakers, fees and rebates, and several competing venues stitched together by routing rules. The random flow is independent of the price and of your trades, so none of the strategic behaviour that makes real order books interesting is present. If you want a feel for that, try posting a large bid and ask yourself what a real counterparty would infer from it.
+
+What survives is the part that is true everywhere: two sorted lists, a rule for who goes first, and a spread that exists because waiting is not free.

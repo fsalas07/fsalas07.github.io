@@ -1,0 +1,70 @@
+---
+title: 'Colophon: how this site is built'
+description: 'A short account of the typography, layout and tooling behind this site, and why it looks like a paper.'
+date: 2026-11-17
+tags: ['meta', 'design']
+math: true
+---
+
+This site is meant to read like a typeset paper and load like a text file. Everything below is a design decision I can defend, or at least explain.
+
+## Type
+
+The body face is Newsreader, set at about twenty pixels on a desktop screen with a measure near sixty-five characters.<Sidenote>Newsreader is a variable font, so one file covers every weight. Code is set in JetBrains Mono. Both are self-hosted; the page makes no third-party requests.</Sidenote> Running text uses old-style numerals, such as 1984 or 2026, which sit at the height of lowercase letters. Tables switch to lining, tabular figures so that columns align.
+
+| Element        | Face           | Numerals           |
+| -------------- | -------------- | ------------------ |
+| Body text      | Newsreader     | old-style          |
+| Tables, dates  | Newsreader     | lining, tabular    |
+| Code           | JetBrains Mono | n/a                |
+
+Headings are restrained: second-level headings are italic and third-level headings are small capitals.<MarginNote>This is the same hierarchy Tufte's books use, minus the red.</MarginNote> The only colour is a dark red used for links on hover, focus rings and note numbers.
+
+> Above all else show the data.
+>
+> <cite>Edward Tufte</cite>
+
+## Layout
+
+On a wide screen the page has a text column and a margin. Notes live in the margin, next to the sentence they annotate, instead of at the bottom of the page where they are easy to ignore. On a narrow screen there is no margin, so each note collapses behind its number and expands in place when you tap it.<Sidenote>The toggle is a hidden checkbox and a label, so it works without JavaScript and can be operated from the keyboard.</Sidenote>
+
+The technique is borrowed from Tufte CSS.[^1] Ordinary Markdown footnotes still work and appear at the end of the article.
+
+<Figure caption="The page grid on a wide screen: a text column and a margin column for notes.">
+  <svg viewBox="0 0 560 130" role="img" aria-label="A wide rectangle for the text column beside a narrower one for the margin" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="1" width="318" height="128" fill="none" stroke="currentColor" />
+    <rect x="359" y="1" width="200" height="128" fill="none" stroke="currentColor" stroke-dasharray="4 3" />
+    <text x="160" y="70" text-anchor="middle" font-family="inherit" font-size="15" fill="currentColor">text column</text>
+    <text x="459" y="70" text-anchor="middle" font-family="inherit" font-size="15" fill="currentColor">margin</text>
+  </svg>
+</Figure>
+
+## Mathematics
+
+Maths is rendered with KaTeX when the site is built, so no script runs in the browser. Inline, the identity $e^{i\pi} + 1 = 0$ is as pretty as ever. Displayed, the Gaussian integral looks like this:
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
+$$
+
+The stylesheet for it is only loaded on posts that declare `math: true` in their front matter.
+
+## Code
+
+Code blocks are highlighted at build time as well, with a light and a dark theme that follow the site's theme toggle. The colour tokens are defined once and flip with `light-dark()`:
+
+```css
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#fffff8, #171614);
+  --ink: light-dark(#1a1a1a, #e8e6e1);
+}
+
+:root[data-theme='dark'] { color-scheme: dark; }
+```
+
+## What ships
+
+There is no framework runtime on ordinary pages. The only scripts are a few lines that set and toggle the theme, plus Astro's link prefetching. Interactive demos, when they appear, will be isolated islands that only load where a post asks for them.
+
+[^1]: Dave Liepmann's [Tufte CSS](https://edwardtufte.github.io/tufte-css/) is the reference implementation of sidenotes in plain CSS.

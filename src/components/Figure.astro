@@ -1,0 +1,19 @@
+---
+/**
+ * <Figure caption="…" wide>…anything, including a Preact island…</Figure>
+ * Captions are auto-numbered ("Figure 1.") by CSS counters. `wide` makes the
+ * figure span the text column and the margin on wide screens. A rich caption
+ * can be passed through the `caption` slot instead of the prop.
+ */
+interface Props {
+  caption?: string;
+  wide?: boolean;
+  id?: string;
+}
+const { caption, wide = false, id } = Astro.props;
+const hasCaption = Boolean(caption) || Astro.slots.has('caption');
+---
+<figure class:list={['figure', { wide }]} id={id}>
+  <div class="figure-body"><slot /></div>
+  {hasCaption && <figcaption>{caption}<slot name="caption" /></figcaption>}
+</figure>

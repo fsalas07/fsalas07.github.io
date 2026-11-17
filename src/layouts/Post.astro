@@ -1,0 +1,103 @@
+---
+import type { MarkdownHeading } from 'astro';
+import Base from './Base.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import { formatDate, isoDate } from '../lib/posts';
+import { SITE } from '../lib/site';
+import katexCss from 'katex/dist/katex.min.css?url';
+
+interface Link { title: string; href: string }
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  updated?: Date;
+  tags?: string[];
+  draft?: boolean;
+  /** Load KaTeX CSS (only posts that contain math need it). */
+  math?: boolean;
+  /** Show the table of contents. */
+  toc?: boolean;
+  headings?: MarkdownHeading[];
+  /** Whole minutes. */
+  readingTime: number;
+  ogImage?: string;
+  /** Content id, used for the citation key and URL. */
+  slug: string;
+  /** Next-older post. */
+  prev?: Link;
+  /** Next-newer post. */
+  next?: Link;
+}
+
+const {
+  title, description, date, updated, tags = [], draft = false, math = false,
+  toc = true, headings = [], readingTime, ogImage, slug, prev, next,
+} = Astro.props;
+
+const year = date.getUTCFullYear();
+const bibtex = `@misc{salas${year}${slug.replace(/[^a-z0-9]/gi, '').toLowerCase()},
+  author = {Fabian Salas},
+  title  = {${title}},
+  year   = {${year}},
+  url    = {${SITE.url}/writing/${slug}/}
+}`;
+---
+<Base title={title} description={description} ogImage={ogImage} type="article">
+  <Fragment slot="head">
+    {math && <link rel="stylesheet" href={katexCss} />}
+    <meta property="article:published_time" content={isoDate(date)} />
+    {updated && <meta property="article:modified_time" content={isoDate(updated)} />}
+    {tags.map((t) => <meta property="article:tag" content={t} />)}
+  </Fragment>
+  <div class="read-progress" aria-hidden="true"></div>
+  <article class="prose">
+    <header class="post-header">
+      <h1>{title}</h1>
+      <p class="post-meta">
+        <span><span class="k">created</span> <time datetime={isoDate(date)}>{formatDate(date)}</time></span>
+        {updated && <span><span class="k">updated</span> <time datetime={isoDate(updated)}>{formatDate(updated)}</time></span>}
+        <span>{readingTime} min read</span>
+        {draft && <span class="draft-flag">draft</span>}
+      </p>
+      {tags.length > 0 && (
+        <p class="post-tags">
+          <span class="k">tags</span> {tags.join(' · ')}
+        </p>
+      )}
+    </header>
+    {description && (
+      <div class="abstract">
+        <span class="abstract-title">Abstract</span>
+        <p>{description}</p>
+      </div>
+    )}
+    {toc && <TableOfContents headings={headings} />}
+    <slot />
+    <details class="cite">
+      <summary>Cite this page</summary>
+      <pre><code>{bibtex}</code></pre>
+      <button type="button" class="cite-copy" data-copy hidden>copy</button>
+    </details>
+    {(prev || next) && (
+      <nav class="post-nav" aria-label="More writing">
+        {prev && (
+          <a href={prev.href} rel="prev" data-nav="prev">
+            <span class="post-nav-label">← Older</span>
+            <span class="post-nav-title">{prev.title}</span>
+          </a>
+        )}
+        {next && (
+          <a href={next.href} rel="next" data-nav="next">
+            <span class="post-nav-label">Newer →</span>
+            <span class="post-nav-title">{next.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+  </article>
+</Base>
+
+<script>
+  import '../scripts/details';
+</script>

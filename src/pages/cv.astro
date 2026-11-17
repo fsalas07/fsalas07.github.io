@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../lib/site';
+---
+<Base title="CV" description="Curriculum vitae of Fabian Salas.">
+  <article class="prose cv">
+    <div class="cv-top">
+      <h1>{SITE.name}</h1>
+      <p class="cv-print-hint no-print">
+        <button type="button" class="print-button" data-print>print / save as PDF</button>
+      </p>
+    </div>
+    <p class="cv-contact"><span class="todo">TODO: location · email · <a href={SITE.github} rel="me">github.com/fsalas07</a></span></p>
+
+    <section>
+      <h2>Experience</h2>
+      <div class="cv-entry">
+        <h3><span class="todo">TODO: Role, Organisation</span></h3>
+        <span class="cv-when"><span class="todo">TODO: 20XX–20XX</span></span>
+        <ul>
+          <li><span class="todo">TODO: what you did and what changed because of it.</span></li>
+          <li><span class="todo">TODO: a second concrete outcome.</span></li>
+        </ul>
+      </div>
+      <div class="cv-entry">
+        <h3><span class="todo">TODO: Role, Organisation</span></h3>
+        <span class="cv-when"><span class="todo">TODO: 20XX–20XX</span></span>
+        <ul>
+          <li><span class="todo">TODO: what you did and what changed because of it.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Education</h2>
+      <div class="cv-entry">
+        <h3><span class="todo">TODO: Degree, Institution</span></h3>
+        <span class="cv-when"><span class="todo">TODO: 20XX–20XX</span></span>
+        <p><span class="todo">TODO: optional detail, such as thesis or relevant coursework.</span></p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Projects</h2>
+      <div class="cv-entry">
+        <h3><span class="todo">TODO: Project name</span></h3>
+        <span class="cv-when"><span class="todo">TODO: 20XX</span></span>
+        <p><span class="todo">TODO: one line on what it is and your part in it.</span></p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Skills</h2>
+      <dl class="cv-skills">
+        <dt>Languages</dt><dd><span class="todo">TODO</span></dd>
+        <dt>Tools</dt><dd><span class="todo">TODO</span></dd>
+        <dt>Domains</dt><dd><span class="todo">TODO</span></dd>
+      </dl>
+    </section>
+  </article>
+</Base>
+<script is:inline>
+  document.querySelector('[data-print]').addEventListener('click', function () { window.print(); });
+</script>

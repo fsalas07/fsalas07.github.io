@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Placeholder entries. Replace each TODO with real content.
+const projects = [1, 2, 3];
+---
+<Base title="Projects" description="Things Fabian Salas has built.">
+  <div class="prose">
+    <h1 class="page-title">Projects</h1>
+    <p class="muted">Each entry: what it is, why it was hard, where to find it.</p>
+    {projects.map((n) => (
+      <article class="project">
+        <h2><span class="todo">TODO: project name {n}</span></h2>
+        <p><span class="todo">TODO: one sentence on what it does.</span></p>
+        <p class="why"><span class="why-label">Why it was hard.</span> <span class="todo">TODO: the interesting difficulty, in one line.</span></p>
+        <p><span class="todo">TODO: link</span></p>
+      </article>
+    ))}
+  </div>
+</Base>

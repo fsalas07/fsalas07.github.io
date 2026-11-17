@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import { formatDate, isoDate } from '../lib/posts';
+
+// Update this date whenever the page changes.
+const updated = new Date('2026-11-17');
+---
+<Base title="Now" description="What Fabian Salas is doing now.">
+  <div class="prose">
+    <h1 class="page-title">Now</h1>
+    <p class="muted">What I'm doing now. Last updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time>.</p>
+
+    <h2>Working on</h2>
+    <p><span class="todo">TODO: the one or two things taking most of your attention.</span></p>
+
+    <h2>Reading</h2>
+    <p><span class="todo">TODO: what you are reading.</span></p>
+
+    <h2>Thinking about</h2>
+    <p><span class="todo">TODO: a question you keep returning to.</span></p>
+  </div>
+</Base>

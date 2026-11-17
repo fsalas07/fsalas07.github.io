@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../lib/site';
+import { getPosts, isoDate, postUrl } from '../lib/posts';
+
+const recent = (await getPosts()).slice(0, 5);
+---
+<Base title={SITE.name}>
+  <div class="prose">
+    <h1 class="home-name">{SITE.name}</h1>
+    <p class="home-lede"><span class="todo">TODO: one-line description of what you do</span></p>
+    <p>
+      <span class="todo">TODO: a short paragraph about what you are working on right now. Keep it to
+      three or four sentences, and link to the project or post that explains it best.</span>
+    </p>
+
+    <h2 class="section-label">Recent writing</h2>
+    {recent.length > 0 ? (
+      <ul class="post-list">
+        {recent.map((p) => (
+          <li>
+            <time class="post-date" datetime={isoDate(p.data.date)}>{isoDate(p.data.date)}</time>
+            <a href={postUrl(p)} data-list-item>{p.data.title}</a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="muted">Nothing here yet.</p>
+    )}
+    <p><a href="/writing/">All writing →</a></p>
+
+    <h2 class="section-label">Elsewhere</h2>
+    <ul class="link-row">
+      <li><a href="/projects/">Projects</a></li>
+      <li><a href="/cv/">CV</a></li>
+      <li><a href="/now/">Now</a></li>
+      <li><a href={SITE.github} rel="me">GitHub</a></li>
+      <li><a href={SITE.rss}>RSS</a></li>
+    </ul>
+  </div>
+</Base>

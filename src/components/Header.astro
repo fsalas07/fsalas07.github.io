@@ -1,0 +1,37 @@
+---
+import { SITE, NAV } from '../lib/site';
+
+const path = Astro.url.pathname.replace(/\/?$/, '/');
+const isActive = (href: string) => path === href || path.startsWith(href);
+---
+<header class="site-header">
+  <div class="wrap">
+    <a class="site-name" href="/" rel="home">{SITE.name}</a>
+    <nav class="site-nav" aria-label="Main">
+      {NAV.map((n) => (
+        <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined}>{n.label}</a>
+      ))}
+      <button type="button" class="palette-hint" data-palette-open aria-label="Open command palette" title="Search and commands" aria-keyshortcuts="Control+K Meta+K"><kbd data-mod-key>Ctrl K</kbd><span class="ph-icon" aria-hidden="true">⌕</span></button>
+      <button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle light/dark theme" title="Toggle light/dark theme">◐</button>
+    </nav>
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    function current() {
+      return (
+        root.getAttribute('data-theme') ||
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      );
+    }
+    // Also callable from elsewhere (e.g. the keyboard palette).
+    window.toggleTheme = function () {
+      var next = current() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+      return next;
+    };
+    document.querySelector('[data-theme-toggle]').addEventListener('click', window.toggleTheme);
+  })();
+</script>

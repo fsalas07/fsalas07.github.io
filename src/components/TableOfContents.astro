@@ -1,0 +1,19 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props { headings: MarkdownHeading[] }
+// h2 and h3 only (h1 is the post title); skip the visually hidden footnotes label.
+const items = Astro.props.headings.filter(
+  (h) => (h.depth === 2 || h.depth === 3) && h.slug !== 'footnote-label',
+);
+---
+{items.length > 1 && (
+  <nav class="toc" aria-label="Table of contents">
+    <p class="toc-title">Contents</p>
+    <ol>
+      {items.map((h) => (
+        <li class={h.depth === 3 ? 'toc-sub' : undefined}><a href={`#${h.slug}`}>{h.text}</a></li>
+      ))}
+    </ol>
+  </nav>
+)}

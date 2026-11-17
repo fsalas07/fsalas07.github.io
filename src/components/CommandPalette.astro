@@ -1,0 +1,188 @@
+---
+// Command palette + shortcut help. Logic lives in src/scripts/keyboard.ts.
+---
+<dialog id="palette" class="pal" aria-label="Command palette">
+  <div class="pal-box">
+    <input
+      id="pal-input"
+      class="pal-input"
+      type="text"
+      role="combobox"
+      aria-label="Search writing, pages and actions"
+      aria-expanded="false"
+      aria-controls="pal-list"
+      aria-autocomplete="list"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      enterkeyhint="go"
+      placeholder="Search writing, pages, actions…"
+    />
+    <div id="pal-list" class="pal-list" role="listbox" aria-label="Results"></div>
+    <div class="pal-foot" aria-hidden="true">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="kb-help" class="pal kb-help" aria-labelledby="kb-help-title">
+  <div class="pal-box">
+    <h2 id="kb-help-title" class="kb-title">Keyboard shortcuts</h2>
+    <div class="kb-scroll">
+      <table class="kb-table"><tbody></tbody></table>
+    </div>
+    <div class="pal-foot" aria-hidden="true"><span><kbd>esc</kbd> close</span></div>
+  </div>
+</dialog>
+
+<script>
+  import '../scripts/keyboard.ts';
+</script>
+
+<style is:global>
+  /* ---- dialog shell ---- */
+  .pal {
+    inset: 15vh 0 auto 0;
+    margin: 0 auto;
+    padding: 0;
+    width: min(640px, calc(100vw - 32px));
+    max-width: none;
+    max-height: none;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 1rem;
+    line-height: 1.4;
+    box-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.3);
+  }
+  .pal::backdrop { background: rgb(20 18 14 / 0.32); }
+  .pal-box { display: flex; flex-direction: column; max-height: min(70vh, 34rem); }
+  .pal kbd { font-size: 0.72rem; line-height: 1.5; margin-right: 0.25em; color: var(--muted); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pal[open] { animation: pal-in 100ms ease-out; }
+    @keyframes pal-in { from { opacity: 0; transform: scale(0.98); } }
+  }
+
+  /* ---- search input + results ---- */
+  .pal-input {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 0.85rem 1rem;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    outline: none; /* the dialog is the focus context; the caret shows focus */
+  }
+  .pal-input::placeholder { color: var(--muted); }
+  .pal-list { overflow-y: auto; overscroll-behavior: contain; padding: 0.2rem 0 0.4rem; }
+  .pal-g {
+    padding: 0.6rem 1rem 0.15rem;
+    font-size: 0.85rem;
+    font-variant-caps: small-caps;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .pal-o {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    box-shadow: inset 2px 0 0 transparent;
+  }
+  .pal-o[aria-selected='true'] { background: var(--code-bg); box-shadow: inset 2px 0 0 var(--accent); }
+  .pal-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pal-r {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .pal-empty { padding: 1rem; color: var(--muted); font-style: italic; }
+  .pal-foot {
+    display: flex;
+    gap: 1.1rem;
+    padding: 0.45rem 1rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  @media (hover: none) { .pal-foot { display: none; } }
+
+  /* ---- help ---- */
+  .kb-title {
+    margin: 0;
+    padding: 0.85rem 1rem 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 500;
+    font-variant-caps: small-caps;
+    letter-spacing: 0.08em;
+  }
+  .kb-scroll { overflow-y: auto; padding: 0.2rem 1rem 0.6rem; }
+  .kb-scroll:focus-visible { outline: none; }
+  .kb-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  .kb-table th, .kb-table td { border: 0; padding: 0.2rem 1rem 0.2rem 0; vertical-align: baseline; }
+  .kb-table td:first-child { width: 11em; white-space: nowrap; }
+  .kb-table th {
+    padding-top: 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 400;
+    font-variant-caps: small-caps;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .kb-table kbd { font-size: 0.78rem; }
+
+  /* ---- header hint chip ---- */
+  .palette-hint {
+    appearance: none;
+    background: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .palette-hint kbd { margin: 0; font-size: 0.72em; color: inherit; }
+  .palette-hint:hover { color: var(--accent); }
+  .palette-hint:hover kbd { border-color: currentColor; }
+  .palette-hint .ph-icon { display: none; font-size: 1.1em; }
+  @media (hover: none) {
+    .palette-hint kbd { display: none; }
+    .palette-hint .ph-icon { display: inline; }
+  }
+
+  /* ---- j/k selection in lists ---- */
+  [data-list-item]:focus {
+    outline: none;
+    background: var(--mark);
+    text-decoration-color: currentColor;
+    border-radius: 2px;
+    width: fit-content;
+  }
+  li:has(> [data-list-item]:focus) { position: relative; }
+  li:has(> [data-list-item]:focus)::before {
+    content: '▸';
+    position: absolute;
+    left: -1em;
+    font-size: 0.85em;
+    line-height: inherit;
+    color: var(--accent);
+  }
+</style>

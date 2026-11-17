@@ -1,0 +1,174 @@
+/* Small details: footer colophon, heading anchors, post metadata, citation,
+   reading progress, external-link marker, view transitions, text niceties. */
+
+/* ---------- native cross-document view transitions ----------
+   A short crossfade between pages; the header stays put. No JS router. */
+@view-transition { navigation: auto; }
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) { animation-duration: 120ms; }
+.site-header { view-transition-name: site-header; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
+/* ---------- text niceties ---------- */
+.prose { hanging-punctuation: first; }
+.prose p, .prose li, .prose blockquote { hyphens: auto; hyphenate-limit-chars: 6 3 3; }
+.prose p { text-wrap: pretty; }
+h1, h2, h3, h4 { text-wrap: balance; }
+
+/* ---------- footer colophon ---------- */
+.site-footer .colophon {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.colophon > * + *::before { content: '\00b7'; margin-inline: 0.7em; font-family: var(--font-serif); }
+.colophon a { text-decoration-color: transparent; }
+.colophon a:hover, .colophon a:focus-visible { text-decoration-color: currentColor; }
+.colophon > span[title] { cursor: help; }
+.shortcuts-help {
+  appearance: none;
+  margin: 0;
+  padding: 0 0.45em;
+  font: inherit;
+  line-height: 1.5;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.shortcuts-help:hover { color: var(--accent); border-color: currentColor; }
+/* The "·" separator belongs before the button too, but not inside its border. */
+.colophon > .shortcuts-help::before { content: none; }
+.colophon > .shortcuts-help { margin-left: 0.7em; }
+
+/* ---------- heading anchors (rehype-autolink-headings) ---------- */
+.heading-anchor::before { content: '#'; }
+.prose :is(h2, h3, h4) { position: relative; }
+.heading-anchor {
+  position: absolute;
+  right: 100%;
+  padding-right: 0.3em;
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  font-style: normal;
+  font-weight: 400;
+  font-variant-caps: normal;
+  letter-spacing: 0;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+:is(h2, h3, h4):hover > .heading-anchor,
+.heading-anchor:focus-visible { opacity: 1; }
+.heading-anchor:hover { color: var(--accent); }
+
+/* ---------- post metadata, Gwern style ---------- */
+.post-meta .k, .post-tags .k {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  margin-right: 0.15em;
+}
+.post-tags {
+  margin: 0.15em 0 0;
+  color: var(--muted);
+  font-size: 0.9em;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.05em;
+}
+.post-tags .k { opacity: 0.75; }
+
+/* ---------- cite this page ---------- */
+.cite {
+  margin-top: 3em;
+  font-size: 0.9em;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.8em;
+}
+.cite summary {
+  cursor: pointer;
+  width: fit-content;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.cite summary:hover { color: var(--accent); }
+.cite pre { margin: 0.8em 0 0.4em; font-size: 0.8em; white-space: pre; }
+.cite-copy {
+  appearance: none;
+  display: block;
+  margin: 0 0 0 auto;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85em;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+}
+.cite-copy:hover { color: var(--accent); text-decoration-color: currentColor; }
+
+/* ---------- reading progress (scroll-driven, JS-free) ---------- */
+.read-progress { display: none; }
+@supports (animation-timeline: scroll()) {
+  .read-progress {
+    display: block;
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    z-index: 20;
+    pointer-events: none;
+    /* Longhands on purpose: the minifier would fold a shorthand plus
+       animation-timeline into one `animation:` declaration that some
+       browsers reject. */
+    animation-name: read-progress;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+  @keyframes read-progress { to { transform: scaleX(1); } }
+  /* Position-linked, not autoplay, so it stays on under reduced motion. The
+     global reduce rule shortens durations; scroll timelines must keep `auto`. */
+  @media (prefers-reduced-motion: reduce) {
+    .read-progress { animation-duration: auto !important; }
+  }
+}
+
+/* ---------- external links in prose get a small arrow ---------- */
+@media screen {
+  .prose a[href^='http']:not([href*='fsalas07.github.io']):not(.heading-anchor)::after {
+    content: '\2197\fe0e';
+    display: inline-block;
+    margin-left: 0.12em;
+    font-family: var(--font-serif);
+    font-size: 0.72em;
+    line-height: 1;
+    vertical-align: 0.28em;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .prose a[href^='http']:not([href*='fsalas07.github.io']):hover::after { color: var(--accent); }
+}
+
+@media print {
+  .read-progress, .cite, .heading-anchor, .shortcuts-help { display: none !important; }
+  .sidenote, .marginnote { top: auto !important; }
+}

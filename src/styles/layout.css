@@ -1,0 +1,103 @@
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: 0;
+  transform: translateY(-120%);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  padding: 0.3em 0.7em;
+  z-index: 10;
+}
+.skip-link:focus { transform: none; }
+
+/* Centered wrapper. Narrow screens: one reading column. Wide screens: the
+   wrapper is wide enough to hold a text column plus a margin column. */
+.wrap {
+  width: 100%;
+  max-width: calc(var(--measure) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+@media (min-width: 1100px) {
+  .wrap { max-width: calc(1240px + 2 * var(--gutter)); }
+}
+
+/* ---- header ---- */
+.site-header {
+  padding-block: 1.1rem 0.9rem;
+  font-size: 0.95rem;
+}
+.site-header .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.25rem;
+}
+.site-name {
+  text-decoration: none;
+  font-size: 1.15em;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+.site-nav { display: flex; align-items: baseline; gap: 1.1rem; }
+.site-nav a { text-decoration: none; color: var(--muted); }
+.site-nav a:hover { color: var(--accent); }
+.site-nav a[aria-current] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.3em;
+  text-decoration-color: var(--accent);
+}
+.theme-toggle {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0 0.1em;
+  margin: 0;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+}
+.theme-toggle:hover { color: var(--accent); }
+
+/* ---- footer ---- */
+.site-footer {
+  margin-top: 5rem;
+  padding-block: 1.5rem 2.5rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.site-footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+.site-footer ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 1.1rem; }
+.site-footer li { margin: 0; }
+.site-footer p { margin: 0; }
+
+/* ---- prose columns ----
+   Every direct child of .prose is a block in the text column. Notes float
+   into the margin to its right; `.wide` blocks span the whole wrapper. */
+.prose { padding-top: 1.5rem; }
+.prose > * { max-width: var(--measure); }
+
+@media (min-width: 1100px) {
+  .prose > * {
+    max-width: none;
+    width: calc(var(--col) * 1%);
+  }
+  .prose > .wide,
+  .prose > figure.wide,
+  .prose > .katex-display.wide { width: 100%; }
+}
+
+/* Plain list-style pages use the same column. */
+.page-title { margin-top: 1.5rem; }
+.lede { font-size: var(--text-lg); line-height: 1.4; }

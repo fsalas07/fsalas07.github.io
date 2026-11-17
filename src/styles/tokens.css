@@ -1,0 +1,53 @@
+/* Design tokens. Colours use light-dark(), which follows the CSS
+   `color-scheme`: the OS preference by default, or the explicit
+   <html data-theme="light|dark"> override set before first paint. */
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#fffff8, #171614);
+  --ink: light-dark(#1a1a1a, #e8e6e1);
+  --muted: light-dark(#666259, #9d988e);
+  --rule: light-dark(#e5e2da, #302e2a);
+  --accent: light-dark(#8c2a1f, #e29a82);
+  --code-bg: light-dark(#f6f4ea, #1f1d1a);
+  --mark: light-dark(#f3e9c4, #3a3320);
+
+  --font-serif: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Type scale (1.25 ratio on a fluid base). */
+  --text-base: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+  --text-sm: 0.85em;
+  --text-lg: 1.25em;
+  --text-xl: 1.563em;
+  --text-2xl: 1.953em;
+  --text-3xl: 2.441em;
+  --leading: 1.5;
+
+  /* Spacing, in em of the body size so it scales with the type. */
+  --space-1: 0.25em;
+  --space-2: 0.5em;
+  --space-3: 1em;
+  --space-4: 1.5em;
+  --space-5: 2.5em;
+  --space-6: 4em;
+
+  --gutter: 1rem;
+  --measure: 40rem; /* ~65 characters of body text */
+
+  /* Page grid on wide screens, as percentages of the wrapper:
+     text column + gap + margin column. */
+  --col: 58;
+  --gap: 4;
+  --margin-col: 34;
+}
+
+@media (min-width: 640px) {
+  :root { --gutter: 1.5rem; }
+}
+@media (min-width: 1100px) {
+  :root { --gutter: 2rem; }
+}
+
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }

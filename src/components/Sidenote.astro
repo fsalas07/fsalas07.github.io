@@ -1,0 +1,9 @@
+---
+/**
+ * Numbered Tufte-style sidenote. Use inline, on the same line as the text it
+ * annotates (otherwise MDX wraps it in its own <p>):
+ *   text<Sidenote>The note.</Sidenote> continues.
+ * Wide screens: floats into the right margin. Narrow screens: tap the number.
+ */
+---
+<span class="sn"><label class="sn-toggle"><input type="checkbox" class="margin-toggle" aria-label="Show note" /><span class="sn-num"></span></label><span class="sidenote" role="note"><slot /></span></span>

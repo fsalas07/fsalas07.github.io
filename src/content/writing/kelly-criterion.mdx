@@ -1,0 +1,91 @@
+---
+title: 'The Kelly criterion, interactively'
+description: 'A short derivation of the Kelly fraction, the bankroll stake that maximizes long-run growth on a repeated favorable bet, with simulations you can break.'
+date: 2026-11-10
+tags: ['probability', 'finance', 'interactive']
+math: true
+toc: true
+---
+import KellyPaths from '../../components/demos/KellyPaths.tsx';
+import KellyGrowth from '../../components/demos/KellyGrowth.tsx';
+
+Someone offers you a bet you are certain to like: a coin that lands heads 55% of the time, paid at even money, as many rounds as you care to play. How much of your money should you stake each round? "Everything" maximizes expected wealth, and it is also a very reliable way to end up with nothing. "A little" is safe and slow. The right answer sits between the two and has a closed form.
+
+## Why not just maximize expected wealth?
+
+Stake everything on every flip. After $n$ rounds your expected wealth is $(2 \times 0.55)^n = 1.1^n$, which is as large as any strategy can make it. After 500 rounds that is about $5 \times 10^{20}$ times what you started with. But you only have anything at all if you won every flip, which happens with probability $0.55^{500} \approx 10^{-130}$. The enormous average is carried entirely by an event that will never happen to you.
+
+The trouble is that bets compound. Your wealth is multiplied by a random factor each round, and the long-run behaviour of a product of random factors is governed by the average of the *logarithms*, not the logarithm of the average. So we should maximize growth in log-wealth.
+
+## The derivation
+
+Let the bankroll be $W_0$ and stake a fixed fraction $f$ of it each round. A win pays $b$ for each unit staked, with probability $p$; a loss forfeits the stake, with probability $q = 1 - p$. After $n$ rounds with $k$ wins,
+
+$$
+W_n = W_0\,(1 + bf)^{k}\,(1 - f)^{n-k}.
+$$
+
+Taking logs turns the product into a sum, and dividing by $n$ gives the growth per bet:
+
+$$
+\begin{aligned}
+\frac{1}{n}\ln\frac{W_n}{W_0} &= \frac{k}{n}\ln(1 + bf) + \Bigl(1 - \frac{k}{n}\Bigr)\ln(1 - f) \\
+&\xrightarrow{\;n\to\infty\;}\; g(f) = p\ln(1 + bf) + q\ln(1 - f),
+\end{aligned}
+$$
+
+because $k/n \to p$ by the law of large numbers. Now maximize $g$. Setting the derivative to zero,
+
+$$
+\begin{aligned}
+g'(f) = \frac{pb}{1 + bf} - \frac{q}{1 - f} = 0
+\quad&\Longrightarrow\quad pb\,(1 - f) = q\,(1 + bf) \\
+&\Longrightarrow\quad f^{*} = \frac{pb - q}{b} = p - \frac{q}{b}.
+\end{aligned}
+$$
+
+The second derivative,
+
+$$
+g''(f) = -\frac{pb^2}{(1 + bf)^2} - \frac{q}{(1 - f)^2},
+$$
+
+is negative everywhere, so $g$ is concave and this is the unique maximum.<Sidenote>John L. Kelly Jr. published this in 1956 at Bell Labs, in "A New Interpretation of Information Rate". He was interested in a gambler with a noisy private channel to the race results, and showed that the best achievable growth rate of capital is governed by Shannon's information rate. Shannon's information theory is the foundation it builds on. Edward Thorp, who also worked with Shannon on a wearable roulette-predicting computer, used the criterion to size bets in blackjack, as described in *Beat the Dealer* (1962), and later in markets. The idea of maximizing the expected logarithm of wealth is older still: Daniel Bernoulli proposed logarithmic utility in 1738.</Sidenote> The numerator $pb - q$ is the expected profit per unit staked (the *edge*) and $b$ is the odds, so the rule reads "edge over odds". For our coin, $f^* = 0.55 - 0.45 = 0.10$: stake ten percent of the bankroll each time. Plugging back in gives $g(f^*) \approx 0.0050$, about half a percent per bet, which compounds to a factor of $e^{500 \times 0.0050} \approx 12$ over 500 bets.
+
+If $pb \le q$ there is no edge and the formula goes non-positive. The right stake is zero.
+
+## Watch it happen
+
+Each thin line below is one simulated bankroll over 500 bets, drawn on a log axis so that equal vertical distances mean equal multiples of wealth. All twenty paths replay the *same* random draws as you move the sliders, so you are watching one set of coin flips under different bet sizes rather than a fresh roll each time. The dashed line is the theoretical expected log-wealth, $n\,g(f)$. Try the buttons under the chart in order: half Kelly, Kelly, double Kelly.
+
+<Figure caption="Twenty simulated bankrolls over 500 bets. Sliders set the win probability p, the net payout b and the fraction f of the bankroll staked each bet; f* marks the Kelly fraction on the f slider. The PRNG is mulberry32, and the seed is shown, so any picture can be reproduced.">
+  <KellyPaths client:visible />
+</Figure>
+
+Three things are worth noticing. At $f^*$ the cloud of paths climbs roughly along the dashed line, with some unlucky ones lagging for hundreds of bets. At half of $f^*$ the climb is slower but the paths bunch together. And at $2f^*$ the paths wander sideways, going nowhere on average, while swinging far more than at $f^*$.
+
+## The shape of the curve
+
+The simulation shows the consequences; the curve of $g(f)$ shows the cause. Drag the marker below (or use the arrow keys when it has focus). It shares its $p$, $b$ and $f$ with the figure above, so the two always agree.
+
+<Figure caption="Expected log growth per bet, g(f), against the stake f. The shaded region is where betting grows your money; its right-hand edge lies close to 2f* when the edge is modest. Drag the marker, or focus it and use the arrow keys.">
+  <KellyGrowth client:visible />
+</Figure>
+
+The curve is lopsided in a way that matters. Left of $f^*$ it falls gently, so underbetting costs you little. Right of $f^*$ it falls faster, and beyond roughly $2f^*$ the growth rate is negative: you are taking a favorable bet and still losing money in the long run, because the variance drag of the swings eats the edge.<MarginNote>This asymmetry is why practitioners often bet a fraction of Kelly, typically half. For small edges $g$ is close to a parabola, so half Kelly keeps about three quarters of the growth rate while cutting the volatility of the log-wealth path in half. Your estimate of $p$ is also never exact, and overestimating it pushes you to the costly side of the curve; fractional Kelly is cheap insurance against that.</MarginNote> For a small edge, $g(f)$ is nearly a parabola with its peak at $f^*$, and a parabola that touches zero at the origin crosses zero again at $2f^*$. That is only an approximation: with a large edge, $g(2f^*)$ is visibly nonzero, and at the extreme (try $p = 75\%$, $b = 3$) $2f^*$ exceeds the whole bankroll. The readout under the chart shows the exact value.
+
+## What the number assumes
+
+Kelly is the answer to a specific question, and it is worth being clear about which one.
+
+**You know $p$ and $b$.** In a casino you do. In markets you estimate them, with noise, and the asymmetry above means errors in the optimistic direction hurt more than errors in the pessimistic one. Most of the practical craft is in this step, not in the formula.
+
+**Bets are independent and you can size them freely.** Real positions are correlated, and the multi-asset version of the problem is a matrix equation rather than a single fraction. In the continuous-time limit for one lognormal asset, the same idea gives a leverage of $f^* = (\mu - r)/\sigma^2$, the excess return over the variance.
+
+**You care about long-run growth, not the ride.** Kelly maximizes the typical growth rate, and it is not gentle. In the continuous approximation, a full-Kelly bettor has roughly a one in two chance of seeing their wealth halve at some point on the way up. If you cannot sit through that, you do not actually want full Kelly; you want a smaller fraction, and the curve tells you what it costs.
+
+**Ruin is not the same as a bad stretch.** Because every stake is a *fraction* of current wealth, a Kelly bettor on a bounded-loss bet never reaches exactly zero. In real life, minimum bet sizes, fees, and the need to eat can all make the model's smooth fractions untrue.
+
+## Takeaways
+
+Maximize the expected logarithm of wealth, not wealth. For a repeated bet with win probability $p$ and net odds $b$, stake $f^* = p - (1-p)/b$ of the bankroll. Treat that as an upper bound: the curve is flat near the top and steep beyond it, so shading down is cheap and shading up is not. And when the edge estimate is the weakest part of your model, which it usually is, the sensible fraction is smaller than the textbook one.
